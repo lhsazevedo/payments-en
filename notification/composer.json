@@ -1,0 +1,19 @@
+{
+    "name": "lhsazevedo/notification",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Lucas Azevedo",
+            "email": "lhs_azevedo@hotmail.com"
+        }
+    ],
+    "require": {
+        "hyperf/nano": "^2.0",
+        "hyperf/amqp": "^3.1"
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "dockerComposeFile": "compose.yml",
+    "service": "payments",
+    "workspaceFolder": "/app",
+    "overrideCommand": true,
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "xdebug.php-debug",
+                "bmewburn.vscode-intelephense-client"
+            ]
+        }
+    },
+
+    "remoteUser": "user"
+}

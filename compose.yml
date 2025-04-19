@@ -1,0 +1,49 @@
+services:
+  payments:
+    build: .
+    ports:
+      - 9501:9501
+    volumes:
+      - ./:/app
+      - ./docker/php.ini:/usr/local/etc/php/conf.d/99-php.ini
+    working_dir: /app/payments
+    environment:
+      - DB_DRIVER=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=secret
+      - AMQP_HOST=rabbitmq
+      - AMQP_PORT=5672
+      - AMQP_USER=guest
+      - AMQP_PASSWORD=guest
+    entrypoint: php payments-server.php start
+
+  notification:
+    build: .
+    volumes:
+      - ./:/app
+      - ./docker/php.ini:/usr/local/etc/php/conf.d/99-php.ini
+    working_dir: /app/notification
+    environment:
+      - AMQP_HOST=rabbitmq
+      - AMQP_PORT=5672
+      - AMQP_USER=guest
+      - AMQP_PASSWORD=guest
+    entrypoint: php notification-server.php start
+
+  db:
+    image: postgres
+    # restart: always
+    shm_size: 128mb
+    environment:
+        POSTGRES_PASSWORD: secret
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - 15672:15672
