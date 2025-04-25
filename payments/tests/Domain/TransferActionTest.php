@@ -25,7 +25,7 @@ class TransferActionTest extends TestCase
     private NotificationServiceContract&MockObject $notificationService;
     private PaymentAuthorizerContract&MockObject $paymentAuthorizer;
     private PaymentRepositoryContract&MockObject $paymentRepository;
-    private TransactionManagerContract&MockObject $transactionManager;
+    private TransactionManagerContract $transactionManager;
     private UserRepositoryContract&MockObject $userRepository;
 
     public function setUp(): void
@@ -33,12 +33,17 @@ class TransferActionTest extends TestCase
         $this->notificationService = $this->createMock(NotificationServiceContract::class);
         $this->paymentAuthorizer = $this->createMock(PaymentAuthorizerContract::class);
         $this->paymentRepository = $this->createMock(PaymentRepositoryContract::class);
-        $this->transactionManager = $this->createMock(TransactionManagerContract::class);
+        $this->transactionManager = new class() implements TransactionManagerContract {
+            public function run (callable $cb): void {
+                $cb();
+            }
+        };
         $this->userRepository = $this->createMock(UserRepositoryContract::class);
     }
 
     public function testSuccessfulTransfer(): void
     {
+        // Arrange
         $action = new TransferAction(
             $this->notificationService,
             $this->paymentAuthorizer,
@@ -52,56 +57,61 @@ class TransferActionTest extends TestCase
         $amount  = new Amount(50);
 
         $taxId = new TaxId('12345678900');
-        $payer = new User('Payer', '21987654300', 'payer@exemplo.com.br', $taxId, UserType::Regular, new Amount(100));
-        $payee = new User('Payee', '21987654301', 'payee@exemplo.com.br', $taxId, UserType::Regular, new Amount(20));
+        $payer = new User(
+            'Payer',
+            '21987654300',
+            'payer@exemplo.com.br',
+            $taxId,
+            UserType::Regular,
+            new Amount(100),
+        );
+        $payee = new User(
+            'Payee',
+            '21987654301',
+            'payee@exemplo.com.br',
+            $taxId,
+            UserType::Regular,
+            new Amount(20),
+        );
 
-        // Mock repository to return payer/payee based on ID
         $this->userRepository
-            ->expects($this->exactly(2))
             ->method('findByIdForUpdateOrFail')
-            ->willReturnCallback(fn(int $id) => $id === $payerId ? $payer : $payee);
+            ->willReturnMap([
+                [$payerId, $payer],
+                [$payeeId, $payee],
+            ]);
 
-        // Execute transaction closure
-        $this->transactionManager
-            ->expects($this->once())
-            ->method('run')
-            ->willReturnCallback(fn(\Closure $callback) => $callback());
-
-        // Authorize payment
         $this->paymentAuthorizer
             ->expects($this->once())
             ->method('authorize')
             ->with($this->isInstanceOf(Payment::class));
 
-        // Save users: check order
-        $saveMatcher = $this->exactly(2);
+        $matcher = $this->exactly(2);
         $this->userRepository
-            ->expects($saveMatcher)
+            ->expects($matcher)
             ->method('save')
-            ->willReturnCallback(function (User $user) use ($saveMatcher, $payer, $payee) {
-                match ($saveMatcher->numberOfInvocations()) {
+            ->willReturnCallback(function (User $user) use ($matcher, $payer, $payee) {
+                match ($matcher->numberOfInvocations()) {
                     1 => $this->assertSame($payer, $user),
                     2 => $this->assertSame($payee, $user),
                 };
                 return $user;
             });
 
-        // Save payment
         $this->paymentRepository
             ->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(Payment::class));
 
-        // Notify payee
         $this->notificationService
             ->expects($this->once())
             ->method('notify')
             ->with($payee, $this->isInstanceOf(PaymentReceivedNotification::class));
 
-        // Invoke action
+        // Act
         $action($payerId, $payeeId, $amount);
 
-        // Assert balances
+        // Assert
         $this->assertEquals(50, $payer->getBalance()->value);
         $this->assertEquals(70, $payee->getBalance()->value);
     }
@@ -132,17 +142,13 @@ class TransferActionTest extends TestCase
             new Amount(100),
         );
 
-        // Mock repository
         $this->userRepository
             ->expects($this->exactly(2))
             ->method('findByIdForUpdateOrFail')
-            ->willReturnCallback(fn(int $id) => $id === $payerId ? $payer : $payee);
-
-        // Transaction run
-        $this->transactionManager
-            ->expects($this->once())
-            ->method('run')
-            ->willReturnCallback(fn(\Closure $callback) => $callback());
+            ->willReturnMap([
+                [$payerId, $payer],
+                [$payeeId, $payee],
+            ]);
 
         $this->expectException(InvalidPayerException::class);
 
@@ -172,17 +178,10 @@ class TransferActionTest extends TestCase
             new Amount(100),
         );
 
-        // Mock repository
         $this->userRepository
             ->expects($this->exactly(2))
             ->method('findByIdForUpdateOrFail')
-            ->willReturnCallback(fn() => $payer);
-
-        // Transaction run
-        $this->transactionManager
-            ->expects($this->once())
-            ->method('run')
-            ->willReturnCallback(fn(\Closure $callback) => $callback());
+            ->willReturn($payer);
 
         $this->expectException(InvalidPayerException::class);
 
