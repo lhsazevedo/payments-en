@@ -6,12 +6,11 @@ namespace App\Domain;
 
 use App\Domain\ValueObject\Amount;
 
-readonly class PaymentEvent {
+readonly class PaymentEvent
+{
     public function __construct(
         public int $payerUserId,
         public int $payeeUserId,
         public Amount $amount,
-    )
-    {
-    }
+    ) {}
 }

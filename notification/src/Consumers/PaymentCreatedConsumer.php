@@ -25,9 +25,7 @@ class PaymentCreatedConsumer extends ConsumerMessage
     public function __construct(
         private ValidatorFactoryInterface $validatorFactory,
         private NotifyAction $notifyAction,
-    )
-    {
-    }
+    ) {}
 
     /**
      * @param array<mixed> $data
@@ -54,7 +52,7 @@ class PaymentCreatedConsumer extends ConsumerMessage
 
     /**
      * @param array<mixed> $data
-     * 
+     *
      * @return array{payer_user_id: string, payee_user_id: string, amount: string}
      */
     private function validate(array $data): array

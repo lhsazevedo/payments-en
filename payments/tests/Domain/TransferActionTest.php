@@ -32,8 +32,9 @@ class TransferActionTest extends TestCase
         $this->eventPublisher = $this->createMock(EventPublisherContract::class);
         $this->paymentAuthorizer = $this->createMock(PaymentAuthorizerContract::class);
         $this->paymentRepository = $this->createMock(PaymentRepositoryContract::class);
-        $this->transactionManager = new class() implements TransactionManagerContract {
-            public function run (callable $cb): void {
+        $this->transactionManager = new class implements TransactionManagerContract {
+            public function run(callable $cb): void
+            {
                 $cb();
             }
         };
