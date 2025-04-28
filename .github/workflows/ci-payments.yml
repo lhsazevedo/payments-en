@@ -21,7 +21,7 @@ jobs:
         with:
           php-version: 8.2
           tools: composer:v2
-          extensions: bcmath, pdo_pgsql, zip
+          extensions: bcmath, pdo_pgsql, zip, swoole
 
       - name: Install
         run: composer install --no-ansi --no-interaction --no-progress
