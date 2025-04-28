@@ -49,6 +49,7 @@ class UserService implements UserServiceContract
         $response = $this->client->get("http://users:9501/api/v1/users/$id");
 
         $body = $response->getBody()->getContents();
+        /** @var array<mixed> */
         $data = json_decode($body, true);
 
         // Make PHPStan happy

@@ -20,7 +20,7 @@ class NotifyAction
     {
     }
 
-    public function __invoke(PaymentEvent $paymentEvent)
+    public function __invoke(PaymentEvent $paymentEvent): void
     {
         $payer = $this->userService->fetchById($paymentEvent->payerUserId);
         $payee = $this->userService->fetchById($paymentEvent->payeeUserId);

@@ -17,6 +17,9 @@ class PaymentCreatedConsumer extends ConsumerMessage
 
     protected ?string $queue = 'hyperf';
 
+    /**
+     * @var string|array<string>
+     */
     protected string|array $routingKey = 'hyperf';
 
     public function __construct(
@@ -50,6 +53,8 @@ class PaymentCreatedConsumer extends ConsumerMessage
     }
 
     /**
+     * @param array<mixed> $data
+     * 
      * @return array{payer_user_id: string, payee_user_id: string, amount: string}
      */
     private function validate(array $data): array
@@ -65,6 +70,9 @@ class PaymentCreatedConsumer extends ConsumerMessage
 
         $validator->validate();
 
-        return $validator->validated();
+        /** @var array{payer_user_id: string, payee_user_id: string, amount: string} */
+        $validated = $validator->validated();
+
+        return $validated;
     }
 }

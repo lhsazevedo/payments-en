@@ -13,7 +13,6 @@ class GetUserController
 {
     public function __construct(
         private GetUserAction $getUserAction,
-        private ValidatorFactoryInterface $validatorFactory,
     ) {}
 
     public function __invoke(
