@@ -9,9 +9,6 @@ use Hyperf\DbConnection\Db;
 use App\Domain\Exception\EntityNotFoundException;
 use App\Domain\Services\UserRepositoryContract;
 use App\Domain\User;
-use App\Domain\UserType;
-use App\Domain\ValueObject\Amount;
-use App\Domain\ValueObject\TaxId;
 
 /**
  * @SuppressWarnings("PHPMD.ShortVariable")
@@ -22,7 +19,7 @@ class DbUserRepository implements UserRepositoryContract
         private Db $db,
     ) {}
 
-    public function findByIdForUpdate(int $id): ?User
+    public function findById(int $id): ?User
     {
         /**
          * @var null|object{
@@ -30,15 +27,11 @@ class DbUserRepository implements UserRepositoryContract
          *   name: string,
          *   mobile_number: string,
          *   email: string,
-         *   tax_id: string,
-         *   type: int,
-         *   balance: int,
          * }
          */
         $result = $this->db
             ->table('users')
             ->where('id', $id)
-            ->lockForUpdate()
             ->first();
 
         if (! $result) {
@@ -49,17 +42,14 @@ class DbUserRepository implements UserRepositoryContract
             $result->name,
             $result->mobile_number,
             $result->email,
-            new TaxId($result->tax_id),
-            UserType::from($result->type),
-            new Amount($result->balance),
         );
         $this->setId($user, $result->id);
         return $user;
     }
 
-    public function findByIdForUpdateOrFail(int $id): User
+    public function findByIdOrfail(int $id): User
     {
-        $user = $this->findByIdForUpdate($id);
+        $user = $this->findById($id);
 
         if (! $user) {
             throw new EntityNotFoundException();
@@ -76,9 +66,6 @@ class DbUserRepository implements UserRepositoryContract
             'name' => $user->name,
             'mobile_number' => $user->mobileNumber,
             'email' => $user->email,
-            'tax_id' => $user->taxId->value,
-            'type' => $user->type,
-            'balance' => $user->getBalance()->value,
             'updated_at' => $now,
         ];
 

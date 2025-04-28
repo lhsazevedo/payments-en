@@ -33,6 +33,23 @@ services:
       - AMQP_PASSWORD=guest
     entrypoint: php notification-server.php start
 
+  users:
+    build: .
+    ports:
+      - 9502:9501
+    volumes:
+      - ./:/app
+      - ./docker/php.ini:/usr/local/etc/php/conf.d/99-php.ini
+    working_dir: /app/users
+    environment:
+      - DB_DRIVER=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=secret
+    entrypoint: php users-server.php start
+
   db:
     image: postgres
     # restart: always

@@ -8,21 +8,14 @@ use App\Domain\Exception\InsufficientFundsException;
 use App\Domain\ValueObject\Amount;
 use App\Domain\ValueObject\TaxId;
 
-class User
+class Account
 {
     private ?int $id = null; // @phpstan-ignore property.unusedType
 
     public function __construct(
-        public string $name,
-
-        // TODO(Lucas): Convert to value object
-        public string $mobileNumber,
-
-        // TODO(Lucas): Convert to value object
-        public string $email,
+        public int $userId,
         public TaxId $taxId,
-        public UserType $type,
-
+        public AccountType $type,
         // TODO(Lucas): Use a value object that allows negatve values
         private Amount $balance,
     ) {}
@@ -57,7 +50,7 @@ class User
 
     public function isShopkeeper(): bool
     {
-        return $this->type === UserType::Shopkeeper;
+        return $this->type === AccountType::Shopkeeper;
     }
 
     private function hasFunds(Amount $amount): bool

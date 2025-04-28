@@ -8,18 +8,16 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use App\Domain\TransferAction;
 use App\Domain\Payment;
-use App\Domain\User;
+use App\Domain\Account;
 use App\Domain\Exception\InvalidPayerException;
-use App\Domain\Notification\PaymentReceivedNotification;
 use App\Domain\Services\EventPublisherContract;
-use App\Domain\Services\Notification\NotificationServiceContract;
 use App\Domain\Services\PaymentAuthorizerContract;
 use App\Domain\Services\PaymentRepositoryContract;
 use App\Domain\Services\TransactionManagerContract;
-use App\Domain\Services\UserRepositoryContract;
+use App\Domain\Services\AccountRepositoryContract;
 use App\Domain\ValueObject\Amount;
 use App\Domain\ValueObject\TaxId;
-use App\Domain\UserType;
+use App\Domain\AccountType;
 
 class TransferActionTest extends TestCase
 {
@@ -27,7 +25,7 @@ class TransferActionTest extends TestCase
     private PaymentAuthorizerContract&MockObject $paymentAuthorizer;
     private PaymentRepositoryContract&MockObject $paymentRepository;
     private TransactionManagerContract $transactionManager;
-    private UserRepositoryContract&MockObject $userRepository;
+    private AccountRepositoryContract&MockObject $accountRepository;
 
     public function setUp(): void
     {
@@ -39,7 +37,7 @@ class TransferActionTest extends TestCase
                 $cb();
             }
         };
-        $this->userRepository = $this->createMock(UserRepositoryContract::class);
+        $this->accountRepository = $this->createMock(AccountRepositoryContract::class);
     }
 
     public function testSuccessfulTransfer(): void
@@ -50,7 +48,7 @@ class TransferActionTest extends TestCase
             $this->paymentAuthorizer,
             $this->paymentRepository,
             $this->transactionManager,
-            $this->userRepository,
+            $this->accountRepository,
         );
 
         $payerId = 1;
@@ -58,24 +56,20 @@ class TransferActionTest extends TestCase
         $amount  = new Amount(50);
 
         $taxId = new TaxId('12345678900');
-        $payer = new User(
-            'Payer',
-            '21987654300',
-            'payer@exemplo.com.br',
+        $payer = new Account(
+            10,
             $taxId,
-            UserType::Regular,
+            AccountType::Regular,
             new Amount(100),
         );
-        $payee = new User(
-            'Payee',
-            '21987654301',
-            'payee@exemplo.com.br',
+        $payee = new Account(
+            20,
             $taxId,
-            UserType::Regular,
+            AccountType::Regular,
             new Amount(20),
         );
 
-        $this->userRepository
+        $this->accountRepository
             ->method('findByIdForUpdateOrFail')
             ->willReturnMap([
                 [$payerId, $payer],
@@ -88,15 +82,15 @@ class TransferActionTest extends TestCase
             ->with($this->isInstanceOf(Payment::class));
 
         $matcher = $this->exactly(2);
-        $this->userRepository
+        $this->accountRepository
             ->expects($matcher)
             ->method('save')
-            ->willReturnCallback(function (User $user) use ($matcher, $payer, $payee) {
+            ->willReturnCallback(function (Account $account) use ($matcher, $payer, $payee) {
                 match ($matcher->numberOfInvocations()) {
-                    1 => $this->assertSame($payer, $user),
-                    2 => $this->assertSame($payee, $user),
+                    1 => $this->assertSame($payer, $account),
+                    2 => $this->assertSame($payee, $account),
                 };
-                return $user;
+                return $account;
             });
 
         $this->paymentRepository
@@ -124,7 +118,7 @@ class TransferActionTest extends TestCase
             $this->paymentAuthorizer,
             $this->paymentRepository,
             $this->transactionManager,
-            $this->userRepository,
+            $this->accountRepository,
         );
 
         $payerId = 1;
@@ -132,18 +126,16 @@ class TransferActionTest extends TestCase
         $amount  = new Amount(30);
 
         $taxId = new TaxId('12345678900');
-        $payer = $this->createMock(User::class);
+        $payer = $this->createMock(Account::class);
         $payer->method('isShopkeeper')->willReturn(true);
-        $payee = new User(
-            'Payee',
-            '21987654301',
-            'payee@exemplo.com.br',
+        $payee = new Account(
+            10,
             $taxId,
-            UserType::Regular,
+            AccountType::Regular,
             new Amount(100),
         );
 
-        $this->userRepository
+        $this->accountRepository
             ->expects($this->exactly(2))
             ->method('findByIdForUpdateOrFail')
             ->willReturnMap([
@@ -163,23 +155,21 @@ class TransferActionTest extends TestCase
             $this->paymentAuthorizer,
             $this->paymentRepository,
             $this->transactionManager,
-            $this->userRepository,
+            $this->accountRepository,
         );
 
         $payerId = 1;
         $amount  = new Amount(30);
 
         $taxId = new TaxId('12345678900');
-        $payer = new User(
-            'Payer',
-            '21987654301',
-            'payee@exemplo.com.br',
+        $payer = new Account(
+            10,
             $taxId,
-            UserType::Regular,
+            AccountType::Regular,
             new Amount(100),
         );
 
-        $this->userRepository
+        $this->accountRepository
             ->expects($this->exactly(2))
             ->method('findByIdForUpdateOrFail')
             ->willReturn($payer);

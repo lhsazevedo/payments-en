@@ -14,9 +14,9 @@ use Psr\Http\Message\StreamInterface;
 use Hyperf\Guzzle\ClientFactory;
 use App\Services\ExternalPaymentAuthorizer;
 use App\Domain\Payment;
-use App\Domain\User;
+use App\Domain\Account;
 use App\Domain\ValueObject\TaxId;
-use App\Domain\UserType;
+use App\Domain\AccountType;
 use App\Domain\ValueObject\Amount;
 use App\Domain\Exception\UnauthorizedPaymentException;
 
@@ -142,8 +142,8 @@ class ExternalPaymentAuthorizerTest extends TestCase
     private function createPayment(): Payment
     {
         $taxId = new TaxId('12345678900');
-        $payer = new User('Payer', '21987654300', 'payer@exemplo.com.br', $taxId, UserType::Regular, new Amount(100));
-        $payee = new User('Payee', '21987654301', 'payee@exemplo.com.br', $taxId, UserType::Regular, new Amount(0));
+        $payer = new Account(10, $taxId, AccountType::Regular, new Amount(100));
+        $payee = new Account(20, $taxId, AccountType::Regular, new Amount(0));
 
         return new Payment($payer, $payee, new Amount(50));
     }

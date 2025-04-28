@@ -8,5 +8,5 @@ use App\Domain\Payment;
 
 interface PaymentRepositoryContract
 {
-    public function save(Payment $user): Payment;
+    public function save(Payment $payment): Payment;
 }

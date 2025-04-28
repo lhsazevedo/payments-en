@@ -13,8 +13,8 @@ class Payment
     private ?int $id = null; // @phpstan-ignore property.unusedType
 
     public function __construct(
-        public User $payer,
-        public User $payee,
+        public Account $payer,
+        public Account $payee,
         public Amount $amount,
     ) {
         $this->createdAt = new \DateTimeImmutable();

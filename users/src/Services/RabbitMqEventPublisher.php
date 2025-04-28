@@ -29,8 +29,8 @@ class RabbitMqEventPublisher implements EventPublisherContract
         };
         $smsAmqpMessage->setPayload([
             'event' => 'transfer_created',
-            'payer_user_id' => $payment->payer->userId,
-            'payee_user_id' => $payment->payee->userId,
+            'payee_id' => $payment->payee->getId(),
+            'payer_id' => $payment->payer->getId(),
             'amount' => $payment->amount->value,
         ]);
         $this->producer->produce($smsAmqpMessage);

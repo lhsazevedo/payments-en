@@ -47,8 +47,8 @@ class DbPaymentRepository implements PaymentRepositoryContract
 
     private function setId(Payment $payment, int $id): void
     {
-        $reflectionUser = new \ReflectionClass(Payment::class);
-        $reflectionId = $reflectionUser->getProperty('id');
+        $reflectionPayment = new \ReflectionClass(Payment::class);
+        $reflectionId = $reflectionPayment->getProperty('id');
         $reflectionId->setValue($payment, $id);
     }
 }

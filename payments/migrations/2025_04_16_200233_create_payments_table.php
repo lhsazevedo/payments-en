@@ -18,8 +18,8 @@ return new class extends Migration {
             $table->unsignedInteger('payee_id');
             $table->integer('amount');
 
-            $table->foreign('payer_id')->references('id')->on('users');
-            $table->foreign('payee_id')->references('id')->on('users');
+            $table->foreign('payer_id')->references('id')->on('accounts');
+            $table->foreign('payee_id')->references('id')->on('accounts');
 
             $table->datetimes(3);
         });

@@ -9,7 +9,7 @@ use App\Domain\Services\EventPublisherContract;
 use App\Domain\Services\PaymentAuthorizerContract;
 use App\Domain\Services\PaymentRepositoryContract;
 use App\Domain\Services\TransactionManagerContract;
-use App\Domain\Services\UserRepositoryContract;
+use App\Domain\Services\AccountRepositoryContract;
 use App\Domain\ValueObject\Amount;
 
 class TransferAction
@@ -19,7 +19,7 @@ class TransferAction
         private PaymentAuthorizerContract $paymentAuthorizer,
         private PaymentRepositoryContract $paymentRepository,
         private TransactionManagerContract $transactionManager,
-        private UserRepositoryContract $userRepository,
+        private AccountRepositoryContract $accountRepository,
     ) {}
 
     public function __invoke(int $payerId, int $payeeId, Amount $amount): void
@@ -35,8 +35,8 @@ class TransferAction
         int $payeeId,
         Amount $amount,
     ): void {
-        $payer = $this->userRepository->findByIdForUpdateOrFail($payerId);
-        $payee = $this->userRepository->findByIdForUpdateOrFail($payeeId);
+        $payer = $this->accountRepository->findByIdForUpdateOrFail($payerId);
+        $payee = $this->accountRepository->findByIdForUpdateOrFail($payeeId);
 
         if ($payer->isShopkeeper() || $payerId === $payeeId) {
             throw new InvalidPayerException();
@@ -50,8 +50,8 @@ class TransferAction
         $payer->debit($amount);
         $payee->credit($amount);
 
-        $this->userRepository->save($payer);
-        $this->userRepository->save($payee);
+        $this->accountRepository->save($payer);
+        $this->accountRepository->save($payee);
         $this->paymentRepository->save($payment);
 
         $this->eventPublisher->publishTransferCreated($payment);
