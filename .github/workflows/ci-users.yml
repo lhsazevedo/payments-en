@@ -1,0 +1,39 @@
+name: CI - Users
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    name: CI - Users
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: users
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          tools: composer:v2
+          extensions: bcmath, pdo_pgsql, zip
+
+      - name: Install
+        run: composer install --no-ansi --no-interaction --no-progress
+
+      - name: Lint
+        run: composer run lint
+
+      - name: Static Analysis
+        run: composer run stan
+
+      - name: Mess Detector
+        run: composer run md
+
+      - name: Unit Test
+        run: composer run test
