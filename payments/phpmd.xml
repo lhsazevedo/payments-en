@@ -28,7 +28,7 @@
         <properties>
             <property name="exceptions">
                 <value>
-                    \App\Domain\UserType
+                    \App\Domain\AccountType
                 </value>
             </property>
         </properties>
