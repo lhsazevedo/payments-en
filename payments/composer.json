@@ -5,7 +5,7 @@
         "test": "phpunit tests",
         "lint": "php-cs-fixer check",
         "format": "php-cs-fixer fix",
-        "stan": "phpstan --memory-limit=512M analyse -l 9 src",
+        "stan": "phpstan --memory-limit=512M analyse -l max src",
         "md": "phpmd src text codesize,controversial,design,unusedcode,./phpmd.xml"
     },
     "require": {

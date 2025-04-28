@@ -24,6 +24,17 @@ class DbUserRepository implements UserRepositoryContract
 
     public function findByIdForUpdate(int $id): ?User
     {
+        /**
+         * @var null|object{
+         *   id: int,
+         *   name: string,
+         *   mobile_number: string,
+         *   email: string,
+         *   tax_id: string,
+         *   type: int,
+         *   balance: int,
+         * }
+         */
         $result = $this->db
             ->table('users')
             ->where('id', $id)
@@ -35,14 +46,14 @@ class DbUserRepository implements UserRepositoryContract
         }
 
         $user = new User(
-            $result->name,                 // @phpstan-ignore property.notFound
-            $result->mobile_number,        // @phpstan-ignore property.notFound
-            $result->email,                // @phpstan-ignore property.notFound
-            new TaxId($result->tax_id),    // @phpstan-ignore property.notFound
-            UserType::from($result->type), // @phpstan-ignore property.notFound
-            new Amount($result->balance),  // @phpstan-ignore property.notFound
+            $result->name,
+            $result->mobile_number,
+            $result->email,
+            new TaxId($result->tax_id),
+            UserType::from($result->type),
+            new Amount($result->balance),
         );
-        $this->setId($user, $result->id);  // @phpstan-ignore property.notFound
+        $this->setId($user, $result->id);
         return $user;
     }
 

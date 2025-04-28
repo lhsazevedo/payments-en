@@ -11,6 +11,7 @@ use App\Domain\Payment;
 use App\Domain\User;
 use App\Domain\Exception\InvalidPayerException;
 use App\Domain\Notification\PaymentReceivedNotification;
+use App\Domain\Services\EventPublisherContract;
 use App\Domain\Services\Notification\NotificationServiceContract;
 use App\Domain\Services\PaymentAuthorizerContract;
 use App\Domain\Services\PaymentRepositoryContract;
@@ -22,7 +23,7 @@ use App\Domain\UserType;
 
 class TransferActionTest extends TestCase
 {
-    private NotificationServiceContract&MockObject $notificationService;
+    private EventPublisherContract&MockObject $eventPublisher;
     private PaymentAuthorizerContract&MockObject $paymentAuthorizer;
     private PaymentRepositoryContract&MockObject $paymentRepository;
     private TransactionManagerContract $transactionManager;
@@ -30,7 +31,7 @@ class TransferActionTest extends TestCase
 
     public function setUp(): void
     {
-        $this->notificationService = $this->createMock(NotificationServiceContract::class);
+        $this->eventPublisher = $this->createMock(EventPublisherContract::class);
         $this->paymentAuthorizer = $this->createMock(PaymentAuthorizerContract::class);
         $this->paymentRepository = $this->createMock(PaymentRepositoryContract::class);
         $this->transactionManager = new class() implements TransactionManagerContract {
@@ -45,7 +46,7 @@ class TransferActionTest extends TestCase
     {
         // Arrange
         $action = new TransferAction(
-            $this->notificationService,
+            $this->eventPublisher,
             $this->paymentAuthorizer,
             $this->paymentRepository,
             $this->transactionManager,
@@ -103,10 +104,10 @@ class TransferActionTest extends TestCase
             ->method('save')
             ->with($this->isInstanceOf(Payment::class));
 
-        $this->notificationService
+        $this->eventPublisher
             ->expects($this->once())
-            ->method('notify')
-            ->with($payee, $this->isInstanceOf(PaymentReceivedNotification::class));
+            ->method('publishTransferCreated')
+            ->with($this->isInstanceOf(Payment::class));
 
         // Act
         $action($payerId, $payeeId, $amount);
@@ -119,7 +120,7 @@ class TransferActionTest extends TestCase
     public function testShopkeeperPayerThrowsException(): void
     {
         $action = new TransferAction(
-            $this->notificationService,
+            $this->eventPublisher,
             $this->paymentAuthorizer,
             $this->paymentRepository,
             $this->transactionManager,
@@ -158,7 +159,7 @@ class TransferActionTest extends TestCase
     public function testTransferToSelfThrowsException(): void
     {
         $action = new TransferAction(
-            $this->notificationService,
+            $this->eventPublisher,
             $this->paymentAuthorizer,
             $this->paymentRepository,
             $this->transactionManager,

@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Domain;
 
 use App\Domain\Exception\InvalidPayerException;
-use App\Domain\Notification\PaymentReceivedNotification;
-use App\Domain\Services\Notification\NotificationServiceContract;
+use App\Domain\Services\EventPublisherContract;
 use App\Domain\Services\PaymentAuthorizerContract;
 use App\Domain\Services\PaymentRepositoryContract;
 use App\Domain\Services\TransactionManagerContract;
@@ -16,7 +15,7 @@ use App\Domain\ValueObject\Amount;
 class TransferAction
 {
     public function __construct(
-        private NotificationServiceContract $notificationService,
+        private EventPublisherContract $eventPublisher,
         private PaymentAuthorizerContract $paymentAuthorizer,
         private PaymentRepositoryContract $paymentRepository,
         private TransactionManagerContract $transactionManager,
@@ -55,9 +54,7 @@ class TransferAction
         $this->userRepository->save($payee);
         $this->paymentRepository->save($payment);
 
-        $this->notificationService->notify(
-            $payee,
-            new PaymentReceivedNotification($payer, $payee, $amount),
-        );
+        $this->eventPublisher->publishTransferCreated($payment);
+
     }
 }
