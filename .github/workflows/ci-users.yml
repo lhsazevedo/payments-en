@@ -35,5 +35,6 @@ jobs:
       - name: Mess Detector
         run: composer run md
 
-      - name: Unit Test
-        run: composer run test
+      # No tests for this service =(
+      # - name: Unit Test
+      #   run: composer run test
