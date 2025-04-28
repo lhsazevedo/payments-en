@@ -1,6 +1,8 @@
 # Payments App
 
-[![CI - Payments](https://github.com/lhsazevedo/payments/actions/workflows/ci-payments.yml/badge.svg)](https://github.com/lhsazevedo/payments/actions/workflows/ci-payments.yml)
+[![CI - Payments service](https://github.com/lhsazevedo/payments/actions/workflows/ci-payments.yml/badge.svg)](https://github.com/lhsazevedo/payments/actions/workflows/ci-payments.yml)
+[![CI - Users service](https://github.com/lhsazevedo/payments/actions/workflows/ci-users.yml/badge.svg)](https://github.com/lhsazevedo/payments/actions/workflows/ci-users.yml)
+[![CI - Notifications service](https://github.com/lhsazevedo/payments/actions/workflows/ci-notification.yml/badge.svg)](https://github.com/lhsazevedo/payments/actions/workflows/ci-notification.yml)
 
 Serviço de pagamentos simplificado de alta performance, usando PHP, Swoole e
 Nano, PostgreSQL e RabbitMQ.
