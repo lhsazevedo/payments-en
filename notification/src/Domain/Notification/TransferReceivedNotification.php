@@ -17,6 +17,6 @@ class TransferReceivedNotification extends AbstractNotification implements Notif
 
     public function getMessage(): string
     {
-        return "Você recebeu {$this->amount->format()} de {$this->payer->name}.";
+        return "You received {$this->amount->format()} from {$this->payer->name}.";
     }
 }

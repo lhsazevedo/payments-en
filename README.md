@@ -4,27 +4,26 @@
 [![CI - Users service](https://github.com/lhsazevedo/payments/actions/workflows/ci-users.yml/badge.svg)](https://github.com/lhsazevedo/payments/actions/workflows/ci-users.yml)
 [![CI - Notifications service](https://github.com/lhsazevedo/payments/actions/workflows/ci-notification.yml/badge.svg)](https://github.com/lhsazevedo/payments/actions/workflows/ci-notification.yml)
 
-Serviço de pagamentos simplificado de alta performance, usando PHP, Swoole e
-Nano, PostgreSQL e RabbitMQ.
+High-performance, simplified payments service using PHP, Swoole and Nano, PostgreSQL, and RabbitMQ.
 
-## Introdução
-Esta API de pagamentos prioriza taxa de requisições e baixa latência, aproveitando o processamento concorrente do Swoole. O projeto é composto por dois microsserviços:
-- Payments: expõe o endpoint de transferência e lida com autorizações e persistência.
-- Notification: Consome mensagens da fila RabbitMQ e envia notificações via gateway externo.
-- Users: Armazena perfil e dados pessoais dos usuários.
+## Introduction
+This payments API prioritizes request rate and low latency by leveraging Swoole's concurrent processing. The project consists of three microservices:
+- **Payments**: Exposes the transfer endpoint and handles authorization and persistence.
+- **Notification**: Consumes messages from the RabbitMQ queue and sends notifications via an external gateway.
+- **Users**: Stores user profiles and personal data.
 
-Essa separação isola falhas de notificações e garante que picos ou quedas nos serviços de SMS/e‑mail não degradem o processamento de pagamentos.
+This separation isolates notification failures and ensures that spikes or downtimes in SMS/email services don't degrade the payment processing pipeline.
 
-## Características
-- Camada de domínio desacoplada do framework.
-- Arquitetura simplificada para o contexto de microserviços.
-- Resolução de dependências pelo container de serviços.
-- Locking pessimista para evitar double spending.
-- Transações com rollback automático em caso de falha.
-- Controle de qualidade do código com PHP-CS-Fixer, PHPMD e PHPStan no nível 9.
-- Testes unitários com cobertura das regras de negócio.
-- Ambiente de desenvolvimento local baseado em Docker e Dev Containers.
-- Timestamps armazenadas com milissegundos para precisão de logs e auditoria.
+## Features
+- Domain layer decoupled from the framework.
+- Simplified architecture for a microservice context.
+- Dependency resolution via a service container.
+- Pessimistic locking to prevent double spending.
+- Transactions with automatic rollback on failure.
+- Code quality enforcement with PHP-CS-Fixer, PHPMD, and PHPStan (level 9).
+- Unit tests covering business rules.
+- Local development environment using Docker and Dev Containers.
+- Timestamps stored with millisecond precision for accurate logging and auditing.
 
 ### Flow Chart
 ![Flow Chart](./flow-chart.svg)
@@ -32,43 +31,43 @@ Essa separação isola falhas de notificações e garante que picos ou quedas no
 ### Sequence Diagram
 ![Sequence Diagram](./sequence-diagram.svg)
 
-## Funcionalidades Implementadas
-- **Transferência de valores entre usuários**
-  - Validação de saldo
-  - Chamada ao autorizador externo
-  - Atualização de saldos em uma transação
-- **Serviço de notificações**
-  - Consome eventos da fila
-  - Invoca o endpoint de notificação
+## Implemented Features
+- **Value transfer between users**
+  - Balance validation
+  - External authorizer call
+  - Balance updates within a transaction
+- **Notification service**
+  - Consumes events from the queue
+  - Calls the notification endpoint
 
-## Próximos passos
-Ideias que tenho para os próximos passos.
+## Next Steps
+Ideas for next development steps:
 
-- [ ] Implementar serviço de notificações.
-- [ ] Revisitar modos de falha e implementar soluções como retry e backoff.
-- [ ] Escrever testes de integração.
-- [ ] Criar script de configuração do RabbitMQ.
-- [ ] Adicionar métodos ausentes nos repositórios.
-- [ ] Implementar métodos aritméticos no Value Object `Amount()`.
-- [ ] Implementar hidratação de entidades usando Reflection
-- [ ] Permitir controle do endereço do serviço autorizador de pagamentos usando variáveis de ambiente.
-- [ ] Registrar pagamentos não autorizados.
-- [ ] Considerar separar usuários e contas em entidades diferentes.
+- [x] Implement the notification service.
+- [ ] Revisit failure modes and implement retry/backoff mechanisms.
+- [ ] Write integration tests.
+- [ ] Create a setup script for RabbitMQ.
+- [ ] Add missing repository methods.
+- [ ] Implement arithmetic methods in the `Amount()` Value Object.
+- [ ] Implement entity hydration using Reflection.
+- [ ] Allow configuring the payment authorizer service URL via environment variables.
+- [ ] Log unauthorized payment attempts.
+- [ ] Consider splitting users and accounts into separate entities.
 
-## Configuração
+## Setup
 
-**1. Clonar e rodar**  
-Após clonar o repositório, suba os serviços usando:
+**1. Clone and run**  
+After cloning the repository, start the services using:
 ```bash
 docker compose up
 ```
 
-**2. Executar migrations e seeders**  
-Abra um novo terminal e execute o seguinte comando para criar o schema no BD do serviço de pagamentos e populá-lo com algumas contas:
+**2. Run migrations and seeders**  
+Open a new terminal and run the following command to create the schema in the payments service database and populate it with sample accounts:
 ```bash
 docker compose exec payments php payments-server.php migrate --seed
 ```
-Se você obtiver a saída abaixo, nosso banco de dados já estará preparado.
+If you see the output below, the database is ready:
 ```
 [INFO] Migration table created successfully.
 Migrating: 2025_04_16_200006_create_users_table
@@ -79,12 +78,11 @@ Seed: AccountSeeder
 Seeded: AccountSeeder
 ```
 
-Faça o mesmo para o serviço de usuários:
+Do the same for the users service:
 ```bash
 docker compose exec users php users-server.php migrate --seed
 ```
 ```
-$ docker compose exec users php users-server.php migrate --seed
 [INFO] Migration table created successfully.
 Migrating: 2025_04_16_200006_create_users_table
 Migrated:  2025_04_16_200006_create_users_table
@@ -92,10 +90,10 @@ Seed: UserSeeder
 Seeded: UserSeeder
 ```
 
-_Nota:_ Se tiver problemas para executar as migrações, experimente fazer um drop das tabelas do banco manualmente primeiro.
+_Note:_ If you encounter issues with the migrations, try manually dropping the existing tables in the database.
 
-**3. Fazer uma requisição e acompanhar os serviços**  
-Agora que ambas as aplicações já estão rodando, podemos fazer uma requisição para o endpoint `POST /transfer` usando o `curl`.
+**3. Make a request and monitor the services**  
+Now that both applications are running, you can send a request to the `POST /transfer` endpoint using `curl`:
 
 ```bash
 curl -X POST \
@@ -104,8 +102,8 @@ curl -X POST \
     0.0.0.0:9501/transfer
 ```
 
-Dependendo da resposta do serviço autorizador, você obterá uma das duas
-respostas abaixo:
+Depending on the response from the authorizer service, you'll get one of the following:
+
 ```json
 {
   "status": "success",
@@ -123,7 +121,7 @@ respostas abaixo:
 }
 ```
 
-Além disso, nos logs do serviço the notificações, você verá logs das notificações que seriam enviadas:
+Additionally, in the logs from the notification service, you’ll see logs for the messages that would be sent:
 
 ```
 notification-1  | Sending a SMS to 21987654321:
@@ -140,7 +138,7 @@ notification-1  | "<h1>You sent R$ 1,00 to Alice.</h1>"
 notification-1  | 
 ```
 
-Experimente trocar os valores no payload JSON para explorar as respostas da API.
-Para experimentar com um lojista, você pode usar o usuário com ID 3.
+Try changing the values in the JSON payload to explore the API responses.  
+To test with a merchant, use the user with ID 3.
 
-_Nota:_ Para formatar a saída JSON do curl, você pode usar a ferramenta `jq`.
+_Note:_ To format the JSON output from `curl`, you can use the `jq` tool.

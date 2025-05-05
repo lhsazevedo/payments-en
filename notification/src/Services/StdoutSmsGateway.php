@@ -10,7 +10,7 @@ class StdoutSmsGateway implements SmsGatewayContract
 {
     public function send(string $number, string $message): void
     {
-        echo "Enviando SMS para $number:\n";
+        echo "Sending a SMS to $number:\n";
         echo "\"$message\"\n\n";
     }
 }

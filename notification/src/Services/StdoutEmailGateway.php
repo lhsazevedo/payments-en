@@ -10,7 +10,7 @@ class StdoutEmailGateway implements EmailGatewayContract
 {
     public function send(string $subject, string $body): void
     {
-        echo "Enviando email para $subject:\n";
+        echo "Sending an email to $subject:\n";
         echo "\"$body\"\n\n";
     }
 }

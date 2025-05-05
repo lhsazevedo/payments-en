@@ -17,6 +17,6 @@ class TransferSentNotification extends AbstractNotification implements Notificat
 
     public function getMessage(): string
     {
-        return "Você enviou {$this->amount->format()} para {$this->payee->name}.";
+        return "You sent {$this->amount->format()} to {$this->payee->name}.";
     }
 }
