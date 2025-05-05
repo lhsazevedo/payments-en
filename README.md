@@ -10,13 +10,10 @@ Nano, PostgreSQL e RabbitMQ.
 ## Introdução
 Esta API de pagamentos prioriza taxa de requisições e baixa latência, aproveitando o processamento concorrente do Swoole. O projeto é composto por dois microsserviços:
 - Payments: expõe o endpoint de transferência e lida com autorizações e persistência.
-- Notification Worker: consome mensagens da fila RabbitMQ ~~e envia notificações via gateway externo~~.
+- Notification: Consome mensagens da fila RabbitMQ e envia notificações via gateway externo.
+- Users: Armazena perfil e dados pessoais dos usuários.
 
 Essa separação isola falhas de notificações e garante que picos ou quedas nos serviços de SMS/e‑mail não degradem o processamento de pagamentos.
-
-_Nota: No momento, o serviço de notificações não está totalmente implementado._
-
-![Flow Chart](./flow-chart.svg)
 
 ## Características
 - Camada de domínio desacoplada do framework.
@@ -29,14 +26,20 @@ _Nota: No momento, o serviço de notificações não está totalmente implementa
 - Ambiente de desenvolvimento local baseado em Docker e Dev Containers.
 - Timestamps armazenadas com milissegundos para precisão de logs e auditoria.
 
+### Flow Chart
+![Flow Chart](./flow-chart.svg)
+
+### Sequence Diagram
+![Sequence Diagram](./sequence-diagram.svg)
+
 ## Funcionalidades Implementadas
 - **Transferência de valores entre usuários**
   - Validação de saldo
   - Chamada ao autorizador externo
   - Atualização de saldos em uma transação
-- **Mock de Notification Worker**
+- **Serviço de notificações**
   - Consome eventos da fila
-  - ~~Invoca o endpoint de notificação~~
+  - Invoca o endpoint de notificação
 
 ## Próximos passos
 Ideias que tenho para os próximos passos.
@@ -61,9 +64,9 @@ docker compose up
 ```
 
 **2. Executar migrations e seeders**  
-Abra um novo terminal e execute o seguinte comando para criar o schema no BD e populá-lo com alguns usuários:
+Abra um novo terminal e execute o seguinte comando para criar o schema no BD do serviço de pagamentos e populá-lo com algumas contas:
 ```bash
-docker compose run payments php payments-server.php migrate --seed
+docker compose exec payments php payments-server.php migrate --seed
 ```
 Se você obtiver a saída abaixo, nosso banco de dados já estará preparado.
 ```
@@ -72,6 +75,19 @@ Migrating: 2025_04_16_200006_create_users_table
 Migrated:  2025_04_16_200006_create_users_table
 Migrating: 2025_04_16_200233_create_payments_table
 Migrated:  2025_04_16_200233_create_payments_table
+Seed: AccountSeeder
+Seeded: AccountSeeder
+```
+
+Faça o mesmo para o serviço de usuários:
+```bash
+docker compose exec users php users-server.php migrate --seed
+```
+```
+$ docker compose exec users php users-server.php migrate --seed
+[INFO] Migration table created successfully.
+Migrating: 2025_04_16_200006_create_users_table
+Migrated:  2025_04_16_200006_create_users_table
 Seed: UserSeeder
 Seeded: UserSeeder
 ```
@@ -80,14 +96,6 @@ _Nota:_ Se tiver problemas para executar as migrações, experimente fazer um dr
 
 **3. Fazer uma requisição e acompanhar os serviços**  
 Agora que ambas as aplicações já estão rodando, podemos fazer uma requisição para o endpoint `POST /transfer` usando o `curl`.
-
-O serviço de notificações ainda não está devidamente implementado, mas podemos vê-lo consumindo as mensagens da fila do RabbitMQ. Para isso, recomendo abrir um log exclusivo deste app:
-
-```bash
-docker compose logs -f notification
-```
-
-Em seguida, em um novo terminal, podemos testar fazendo a requisição:
 
 ```bash
 curl -X POST \
@@ -98,7 +106,7 @@ curl -X POST \
 
 Dependendo da resposta do serviço autorizador, você obterá uma das duas
 respostas abaixo:
-```
+```json
 {
   "status": "success",
   "data": {
@@ -106,7 +114,7 @@ respostas abaixo:
   }
 }
 ```
-```
+```json
 {
   "status": "fail",
   "data": {
@@ -115,23 +123,21 @@ respostas abaixo:
 }
 ```
 
-Além disso, nos logs do serviço autorizador, você verá os dumps das mensagens
-consumidas:
+Além disso, nos logs do serviço the notificações, você verá logs das notificações que seriam enviadas:
 
 ```
-array(2) {
-  'mobile_number' =>
-  string(11) "21912345678"
-  'message' =>
-  string(42) "Olá, Bob! Você recebeu R$ 1,30 de Alice."
-}
-/app/notification/notification-server.php:25:
-array(2) {
-  'email' =>
-  string(18) "bob@exemplo.com.br"
-  'contents' =>
-  string(51) "<h1>Olá, Bob! Você recebeu R$ 1,30 de Alice.</h1>"
-}
+notification-1  | Sending a SMS to 21987654321:
+notification-1  | "You received R$ 1,00 from Bob."
+notification-1  | 
+notification-1  | Sending an email to alice@example.com:
+notification-1  | "<h1>You received R$ 1,00 from Bob.</h1>"
+notification-1  | 
+notification-1  | Sending a SMS to 21912345678:
+notification-1  | "You sent R$ 1,00 to Alice."
+notification-1  | 
+notification-1  | Sending an email to bob@example.com:
+notification-1  | "<h1>You sent R$ 1,00 to Alice.</h1>"
+notification-1  | 
 ```
 
 Experimente trocar os valores no payload JSON para explorar as respostas da API.
