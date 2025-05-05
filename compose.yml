@@ -19,6 +19,9 @@ services:
       - AMQP_USER=guest
       - AMQP_PASSWORD=guest
     entrypoint: php payments-server.php start
+    depends_on:
+      - rabbitmq
+      - db
 
   notification:
     build: .
@@ -32,6 +35,9 @@ services:
       - AMQP_USER=guest
       - AMQP_PASSWORD=guest
     entrypoint: php notification-server.php start
+    depends_on:
+      - rabbitmq
+      - users
 
   users:
     build: .
@@ -49,6 +55,9 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=secret
     entrypoint: php users-server.php start
+    depends_on:
+      - rabbitmq
+      - db
 
   db:
     image: postgres
@@ -56,6 +65,11 @@ services:
     shm_size: 128mb
     environment:
         POSTGRES_PASSWORD: secret
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - 8080:8080
 
   rabbitmq:
     image: rabbitmq:4-management
