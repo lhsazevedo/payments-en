@@ -26,7 +26,7 @@ This separation isolates notification failures and ensures that spikes or downti
 - Timestamps stored with millisecond precision for accurate logging and auditing.
 
 ### Flow Chart
-![Flow Chart](./flow-chart.svg)
+![Flow Chart](./flow-chart-v2.svg)
 
 ### Sequence Diagram
 ![Sequence Diagram](./sequence-diagram.svg)
